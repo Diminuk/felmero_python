@@ -17,11 +17,52 @@ points = {
     "Point D": (-1, -1, -1)
 }
 
-sections = {}
+class Memory():
+    
+    def __init__(self,):
+        self.sections = {}
+    def update_sections(self,newsec):
+        self.sections = newsec
+        
+memory = Memory()
+
+def plot_section(sectionname: str):
+
+    # calc 
+    point_calc = []
+    for section in memory.sections:
+        if section.get("name").find(sectionname) ==0 :
+            points = section.get("points")
+            point_disp = []
+            for point in points:
+                h = point.get("h")
+                v = point.get("v")
+                l = point.get("l")
+                point_disp.append([h,v,l])
+            point_calc.append(point_disp)
+
+    point_arr = np.array(point_calc)
+
+    ax.clear()
+    ax.set_title("Section name")
+    ax.set_xlabel("X")
+    ax.set_ylabel("Y")
+    ax.set_zlabel("Z")
+
+    # Plot the points
+    for label, coords in points.items():
+        ax.scatter(*coords, label=label)
+        ax.text(*coords, label, fontsize=9)
+
+    ax.legend()
+    canvas.draw()
 
 def refresh_sections():
     try:
-        sections = requests.get("http://localhost:8000/data/get-dummysections").json()
+        response = requests.get("http://localhost:8000/data/get-dummysections").json()
+        if response:
+            memory.update_sections(response)
+        update_sections_dropdown()
     except:
         tk.messagebox.showerror("Error", "Cannot refresh sections")
 
@@ -56,7 +97,6 @@ def add_section():
     name = new_section_name.get().strip()
     try:
         if name:
-            
             new_section_name.set("")
             refresh_plot()
             update_dropdowns()
@@ -68,6 +108,12 @@ def update_dropdowns():
     dropdown_options = list(points.keys())
     point1_menu["values"] = dropdown_options
     point2_menu["values"] = dropdown_options
+
+def update_sections_dropdown():
+    sections_dropdown = list()
+    for section in memory.sections:
+        sections_dropdown.append(section.get('name'))
+    section_menu["values"] = sections_dropdown
 
 # Create the main window
 root = tk.Tk()
@@ -85,6 +131,14 @@ tk.Entry(top_frame, textvariable=new_section_name).grid(row=0, column=1, padx=5,
 tk.Button(top_frame, text="New section", command=add_section).grid(row=0, column=2, padx=5, pady=5)
 
 tk.Button(top_frame, text="Refresh", command=refresh_sections).grid(row=0, column=4, padx=5, pady=5)
+
+# Dropdowns for distance calculation
+tk.Label(top_frame, text="Select section").grid(row=3, column=0, padx=5, pady=5)
+selected_section = tk.StringVar()
+section_menu = ttk.Combobox(top_frame, textvariable=selected_section)
+section_menu.grid(row=3, column=1, padx=5, pady=5)
+
+tk.Button(top_frame, text="Plot", command=plot_section).grid(row=3, column=4, padx=5, pady=5)
 
 # Dropdowns for distance calculation
 tk.Label(top_frame, text="Select Point 1:").grid(row=1, column=0, padx=5, pady=5)
@@ -112,6 +166,7 @@ canvas_widget.pack(fill="both", expand=True)
 # Initialize plot and dropdowns
 refresh_plot()
 update_dropdowns()
+refresh_sections()
 
 # Run the application
 root.mainloop()
