@@ -134,7 +134,8 @@ def calculate_distance():
     p1 = int(point1_var.get())
     p2 =int(point2_var.get())
     if p1 and p2 and p1 != p2 and p1 < len(memory.data_np[0][:,0]) and p2 < len(memory.data_np[0][:,0]):
-        print(memory.data_np[0][p1])
+        print(memory.data_np[0][p1][0])
+        print(memory.data_np[0][p2][0])
         
         dist = distance.euclidean(memory.data_np[0][p1][0],memory.data_np[0][p2][0])
         result_label.config(text=f"Distance: {dist:.2f} mm")
